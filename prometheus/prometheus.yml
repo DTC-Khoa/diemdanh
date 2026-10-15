@@ -1,0 +1,32 @@
+global:
+  scrape_interval: 15s
+  evaluation_interval: 15s
+
+scrape_configs:
+  # 1. Prometheus Server
+  - job_name: 'prometheus'
+    static_configs:
+      - targets: ['localhost:9090']
+
+  # 2. Web Application (Node.js Express + prom-client)
+  - job_name: 'attendance_web'
+    metrics_path: '/metrics'
+    static_configs:
+      - targets: ['web:3000']
+        labels:
+          service: 'web'
+          app: 'attendance'
+
+  # 3. Nginx Reverse Proxy Exporter
+  - job_name: 'nginx'
+    static_configs:
+      - targets: ['nginx-exporter:9113']
+        labels:
+          service: 'nginx'
+
+  # 4. MySQL Database Exporter
+  - job_name: 'mysql'
+    static_configs:
+      - targets: ['mysqld-exporter:9104']
+        labels:
+          service: 'mysql'
