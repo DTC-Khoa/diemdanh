@@ -1,0 +1,290 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard Nhân Viên - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p>Nhân Viên • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Chức Năng</div>
+          <a href="/employee/dashboard" class="active">
+            <span>🏠</span> <span>Dashboard</span>
+          </a>
+          <a href="/employee/attendance">
+            <span>⚡</span> <span>Chấm Công Hôm Nay</span>
+          </a>
+          <a href="/employee/history">
+            <span>📅</span> <span>Lịch Sử Điểm Danh</span>
+          </a>
+
+          <div class="menu-category">Cá Nhân</div>
+          <a href="/employee/profile">
+            <span>👤</span> <span>Hồ Sơ & Mật Khẩu</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="footer-username">Nhân Viên</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Không Gian Làm Việc Nhân Viên</h1>
+          <p>Xem ca làm việc, thực hiện chấm công và theo dõi ngày công cá nhân</p>
+        </div>
+
+        <div class="header-actions">
+          <div class="user-badge">
+            <div class="avatar-circle" id="user-avatar">N</div>
+            <div class="user-details">
+              <div class="name" id="header-user-name">Nhân Viên</div>
+              <span class="role-badge" id="header-role">NHÂN VIÊN</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Hero Attendance Card (Interactive Check-In / Check-Out) -->
+      <div class="attendance-hero-card">
+        <div class="clock-display-box">
+          <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8;">ĐỒNG HỒ MÁY CHỦ THỰC TẾ</div>
+          <div class="live-clock-big" id="hero-clock-time">--:--:--</div>
+          <div class="clock-date-big" id="hero-clock-date">Đang tải ngày...</div>
+          <div style="margin-top: 15px; font-size: 13px; color: #94a3b8;">
+            Ca hiện tại: <strong style="color: white;" id="emp-shift-name">Ca Hành Chính</strong> (<span id="emp-shift-time">08:00 - 17:00</span>)
+          </div>
+        </div>
+
+        <div class="attendance-buttons-box">
+          <div style="background: #f8fafc; padding: 14px 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Trạng thái hôm nay:</div>
+            <div style="display: flex; align-items: center; justify-content: space-between; margin-top: 6px;">
+              <span id="today-status-badge"><span class="badge badge-incomplete">Chưa điểm danh</span></span>
+              <span style="font-size: 13px; color: var(--text-muted);">
+                Vào: <strong id="lbl-check-in">--:--</strong> | Ra: <strong id="lbl-check-out">--:--</strong>
+              </span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <button id="btn-checkin" class="btn btn-primary btn-check-action" onclick="handleCheckIn()">
+              <span>🟢</span> <span>Điểm Danh Vào</span>
+            </button>
+
+            <button id="btn-checkout" class="btn btn-danger btn-check-action" onclick="handleCheckOut()">
+              <span>🔴</span> <span>Điểm Danh Ra</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Thẻ Thống Kê Tháng Này -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📅</div>
+          <div class="stat-info">
+            <span>Ngày Công Tháng Này</span>
+            <h3 id="stat-month-days">0</h3>
+            <small>Số buổi đã làm</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">⏰</div>
+          <div class="stat-info">
+            <span>Đi Muộn Trong Tháng</span>
+            <h3 id="stat-month-late">0</h3>
+            <small>Số lần trễ giờ</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple">🚪</div>
+          <div class="stat-info">
+            <span>Về Sớm Trong Tháng</span>
+            <h3 id="stat-month-early">0</h3>
+            <small>Số lần về sớm</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">⏱️</div>
+          <div class="stat-info">
+            <span>Tổng Giờ Làm Việc</span>
+            <h3 id="stat-month-hours">0h</h3>
+            <small>Tích lũy tháng này</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Lịch Sử Điểm Danh Gần Đây -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📅 Lịch Sử Điểm Danh Gần Đây</h3>
+          <a href="/employee/history" class="btn btn-outline btn-sm">Xem Chi Tiết & Báo Cáo ➔</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Ngày Làm Việc</th>
+                  <th>Ca Làm</th>
+                  <th>Giờ Vào</th>
+                  <th>Giờ Ra</th>
+                  <th>Số Giờ Làm</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="emp-history-tbody">
+                <tr><td colspan="6" style="text-align: center; padding: 24px;">Đang tải lịch sử...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    initLiveClock('hero-clock-time', 'hero-clock-date');
+
+    let currentAttendance = null;
+
+    async function loadEmployeeDashboard() {
+      const res = await apiCall('/api/dashboard/employee');
+      if (!res || !res.success) return;
+
+      const { employee, todayAttendance, monthlyStats, recentHistory } = res.data;
+
+      // Thong tin ca lam
+      document.getElementById('emp-shift-name').textContent = employee.shift_name || 'Chưa gán ca';
+      if (employee.start_time && employee.end_time) {
+        document.getElementById('emp-shift-time').textContent = `${employee.start_time.slice(0, 5)} - ${employee.end_time.slice(0, 5)}`;
+      }
+
+      // Thong tin user
+      document.getElementById('header-user-name').textContent = employee.full_name;
+      document.getElementById('footer-username').textContent = employee.employee_code;
+      document.getElementById('user-avatar').textContent = employee.full_name[0].toUpperCase();
+
+      // Thong ke thang
+      document.getElementById('stat-month-days').textContent = monthlyStats.totalWorkDays;
+      document.getElementById('stat-month-late').textContent = monthlyStats.lateCount;
+      document.getElementById('stat-month-early').textContent = monthlyStats.earlyLeaveCount;
+      document.getElementById('stat-month-hours').textContent = monthlyStats.totalHours + 'h';
+
+      // Trang thai hom nay
+      currentAttendance = todayAttendance;
+      updateAttendanceButtons(todayAttendance);
+
+      // Bang lich su gan day
+      const tbody = document.getElementById('emp-history-tbody');
+      if (!recentHistory || recentHistory.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="6" style="text-align: center; padding: 24px;">Bạn chưa có bản ghi điểm danh nào</td></tr>';
+      } else {
+        tbody.innerHTML = recentHistory.map(item => `
+          <tr>
+            <td><strong>${formatDateVN(item.work_date)}</strong></td>
+            <td>${item.shift_name}</td>
+            <td>${item.check_in ? formatTimeVN(item.check_in) : '-'}</td>
+            <td>${item.check_out ? formatTimeVN(item.check_out) : '-'}</td>
+            <td>${item.working_hours > 0 ? item.working_hours + 'h' : '-'}</td>
+            <td>${getStatusBadge(item.status)}</td>
+          </tr>
+        `).join('');
+      }
+    }
+
+    function updateAttendanceButtons(att) {
+      const btnIn = document.getElementById('btn-checkin');
+      const btnOut = document.getElementById('btn-checkout');
+      const statusBadge = document.getElementById('today-status-badge');
+      const lblIn = document.getElementById('lbl-check-in');
+      const lblOut = document.getElementById('lbl-check-out');
+
+      if (!att || !att.check_in) {
+        // Chua diem danh vao
+        statusBadge.innerHTML = '<span class="badge badge-incomplete">Chưa điểm danh</span>';
+        lblIn.textContent = '--:--';
+        lblOut.textContent = '--:--';
+        btnIn.disabled = false;
+        btnOut.disabled = true;
+      } else if (att.check_in && !att.check_out) {
+        // Da diem danh vao, dang lam viec
+        statusBadge.innerHTML = '<span class="badge badge-active">Đang làm việc</span>';
+        lblIn.textContent = formatTimeVN(att.check_in);
+        lblOut.textContent = '--:--';
+        btnIn.disabled = true;
+        btnOut.disabled = false;
+      } else {
+        // Da diem danh ra (hoan thanh)
+        statusBadge.innerHTML = getStatusBadge(att.status);
+        lblIn.textContent = formatTimeVN(att.check_in);
+        lblOut.textContent = formatTimeVN(att.check_out);
+        btnIn.disabled = true;
+        btnOut.disabled = true;
+      }
+    }
+
+    // Diem danh vao
+    async function handleCheckIn() {
+      const btn = document.getElementById('btn-checkin');
+      btn.disabled = true;
+
+      const res = await apiCall('/api/attendance/check-in', { method: 'POST' });
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadEmployeeDashboard();
+      } else {
+        showToast(res ? res.message : 'Điểm danh vào thất bại', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    // Diem danh ra
+    async function handleCheckOut() {
+      if (!confirm('Bạn có chắc chắn muốn điểm danh kết thúc ca làm hôm nay?')) {
+        return;
+      }
+
+      const btn = document.getElementById('btn-checkout');
+      btn.disabled = true;
+
+      const res = await apiCall('/api/attendance/check-out', { method: 'POST' });
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadEmployeeDashboard();
+      } else {
+        showToast(res ? res.message : 'Điểm danh ra thất bại', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadEmployeeDashboard);
+  </script>
+</body>
+</html>

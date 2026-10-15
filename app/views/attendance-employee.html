@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Chấm Công Hôm Nay - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p>Nhân Viên • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Chức Năng</div>
+          <a href="/employee/dashboard">
+            <span>🏠</span> <span>Dashboard</span>
+          </a>
+          <a href="/employee/attendance" class="active">
+            <span>⚡</span> <span>Chấm Công Hôm Nay</span>
+          </a>
+          <a href="/employee/history">
+            <span>📅</span> <span>Lịch Sử Điểm Danh</span>
+          </a>
+
+          <div class="menu-category">Cá Nhân</div>
+          <a href="/employee/profile">
+            <span>👤</span> <span>Hồ Sơ & Mật Khẩu</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="footer-username">Nhân Viên</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Chấm Công Trực Tuyến</h1>
+          <p>Thực hiện ghi nhận giờ vào ca và giờ tan ca chuẩn xác theo thời gian máy chủ</p>
+        </div>
+      </div>
+
+      <!-- Main Action Card -->
+      <div class="attendance-hero-card" style="margin-top: 10px;">
+        <div class="clock-display-box">
+          <div style="font-size: 13px; text-transform: uppercase; letter-spacing: 1.5px; opacity: 0.8;">THỜI GIAN HỆ THỐNG</div>
+          <div class="live-clock-big" id="punch-clock-time">--:--:--</div>
+          <div class="clock-date-big" id="punch-clock-date">Đang tải ngày...</div>
+          <div style="margin-top: 20px; font-size: 14px; background: rgba(255,255,255,0.08); padding: 10px 14px; border-radius: 8px;">
+            Ca làm: <strong id="p-shift-name">--</strong> (<span id="p-shift-time">--:-- - --:--</span>)
+          </div>
+        </div>
+
+        <div class="attendance-buttons-box">
+          <div style="background: #f8fafc; padding: 18px; border-radius: var(--radius-sm); border: 1px solid var(--border-color);">
+            <div style="font-size: 12px; color: var(--text-muted); text-transform: uppercase; font-weight: 600;">Thông Tin Chấm Công Hôm Nay</div>
+            
+            <div style="margin-top: 12px; display: grid; grid-template-columns: 1fr 1fr; gap: 10px;">
+              <div>
+                <small style="color: var(--text-muted);">Giờ Vào Làm:</small>
+                <div style="font-size: 18px; font-weight: 700; color: #16a34a;" id="p-checkin">--:--</div>
+              </div>
+              <div>
+                <small style="color: var(--text-muted);">Giờ Ra Ca:</small>
+                <div style="font-size: 18px; font-weight: 700; color: #dc2626;" id="p-checkout">--:--</div>
+              </div>
+            </div>
+
+            <div style="margin-top: 14px; padding-top: 12px; border-top: 1px dashed var(--border-color); display: flex; justify-content: space-between; align-items: center;">
+              <span style="font-size: 13px; color: var(--text-muted);">Trạng thái hiện tại:</span>
+              <span id="p-status-badge"><span class="badge badge-incomplete">Chưa điểm danh</span></span>
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 16px; margin-top: 6px;">
+            <button id="p-btn-in" class="btn btn-primary btn-check-action" onclick="punchIn()">
+              <span style="font-size: 20px;">🟢</span> <span>Điểm Danh Vào</span>
+            </button>
+            <button id="p-btn-out" class="btn btn-danger btn-check-action" onclick="punchOut()">
+              <span style="font-size: 20px;">🔴</span> <span>Điểm Danh Ra</span>
+            </button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Guidance Notes -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📌 Quy Định & Lưu Ý Chấm Công</h3>
+        </div>
+        <div class="card-body">
+          <ul style="padding-left: 20px; line-height: 1.8; color: #334155; font-size: 14px;">
+            <li>Thời gian chấm công được ghi nhận từ <strong>đồng hồ máy chủ an toàn</strong> để đảm bảo tính minh bạch, không tin tưởng giờ cục bộ của trình duyệt.</li>
+            <li>Hệ thống áp dụng thời gian linh hoạt (Grace Period): được phép đi muộn trong khoảng thời gian quy định của ca mà vẫn tính đúng giờ.</li>
+            <li>Sau khi điểm danh vào, trạng thái sẽ chuyển thành <strong>Đang làm việc</strong>. Khi hết ca, nhân viên vui lòng ấn <strong>Điểm Danh Ra</strong> để hoàn thành ca và tính tổng số giờ công.</li>
+            <li>Nếu có sự cố quên điểm danh ra hoặc nhầm lẫn, vui lòng liên hệ Ban Quản Trị (Admin) để được điều chỉnh có kèm lý do xác thực.</li>
+          </ul>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    initLiveClock('punch-clock-time', 'punch-clock-date');
+
+    async function loadPunchData() {
+      const res = await apiCall('/api/dashboard/employee');
+      if (!res || !res.success) return;
+
+      const { employee, todayAttendance } = res.data;
+
+      document.getElementById('p-shift-name').textContent = employee.shift_name || 'Chưa gán ca';
+      if (employee.start_time && employee.end_time) {
+        document.getElementById('p-shift-time').textContent = `${employee.start_time.slice(0, 5)} - ${employee.end_time.slice(0, 5)}`;
+      }
+      document.getElementById('footer-username').textContent = employee.employee_code;
+
+      const btnIn = document.getElementById('p-btn-in');
+      const btnOut = document.getElementById('p-btn-out');
+      const statusBadge = document.getElementById('p-status-badge');
+      const checkinEl = document.getElementById('p-checkin');
+      const checkoutEl = document.getElementById('p-checkout');
+
+      if (!todayAttendance || !todayAttendance.check_in) {
+        statusBadge.innerHTML = '<span class="badge badge-incomplete">Chưa điểm danh</span>';
+        checkinEl.textContent = '--:--';
+        checkoutEl.textContent = '--:--';
+        btnIn.disabled = false;
+        btnOut.disabled = true;
+      } else if (todayAttendance.check_in && !todayAttendance.check_out) {
+        statusBadge.innerHTML = '<span class="badge badge-active">Đang làm việc</span>';
+        checkinEl.textContent = formatTimeVN(todayAttendance.check_in);
+        checkoutEl.textContent = '--:--';
+        btnIn.disabled = true;
+        btnOut.disabled = false;
+      } else {
+        statusBadge.innerHTML = getStatusBadge(todayAttendance.status);
+        checkinEl.textContent = formatTimeVN(todayAttendance.check_in);
+        checkoutEl.textContent = formatTimeVN(todayAttendance.check_out);
+        btnIn.disabled = true;
+        btnOut.disabled = true;
+      }
+    }
+
+    async function punchIn() {
+      const btn = document.getElementById('p-btn-in');
+      btn.disabled = true;
+
+      const res = await apiCall('/api/attendance/check-in', { method: 'POST' });
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadPunchData();
+      } else {
+        showToast(res ? res.message : 'Điểm danh vào thất bại', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    async function punchOut() {
+      if (!confirm('Bạn có chắc chắn muốn điểm danh ra để kết thúc ca làm việc?')) {
+        return;
+      }
+
+      const btn = document.getElementById('p-btn-out');
+      btn.disabled = true;
+
+      const res = await apiCall('/api/attendance/check-out', { method: 'POST' });
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadPunchData();
+      } else {
+        showToast(res ? res.message : 'Điểm danh ra thất bại', 'error');
+        btn.disabled = false;
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadPunchData);
+  </script>
+</body>
+</html>

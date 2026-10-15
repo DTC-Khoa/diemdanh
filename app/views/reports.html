@@ -1,0 +1,289 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Lịch Sử & Báo Cáo - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p id="portal-label">Portal • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu" id="sidebar-nav">
+          <!-- Rendered dynamically by user role -->
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="footer-username">User</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-header">
+        <div class="page-title">
+          <h1 id="page-title-text">Lịch Sử & Báo Cáo Điểm Danh</h1>
+          <p>Thống kê chi tiết số ngày công, tổng thời gian làm việc và xuất báo cáo dữ liệu định dạng Excel</p>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-success" onclick="exportReportCsv()">
+            <span>📥</span> <span>Xuất Báo Cáo CSV (Excel)</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Metric Summary Cards -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">📋</div>
+          <div class="stat-info">
+            <span>Tổng Số Buổi Làm</span>
+            <h3 id="sum-records">0</h3>
+            <small>Bản ghi chấm công</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">⚠️</div>
+          <div class="stat-info">
+            <span>Số Lần Đi Muộn</span>
+            <h3 id="sum-late">0</h3>
+            <small>Trễ giờ làm</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple">🚪</div>
+          <div class="stat-info">
+            <span>Số Lần Về Sớm</span>
+            <h3 id="sum-early">0</h3>
+            <small>Rời sớm trước giờ</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">⏱️</div>
+          <div class="stat-info">
+            <span>Tổng Giờ Làm Việc</span>
+            <h3 id="sum-hours">0h</h3>
+            <small>Số giờ tích lũy</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Filter Controls -->
+      <div class="card">
+        <div class="card-body" style="padding: 16px 20px;">
+          <div class="filter-bar" style="margin-bottom: 0;">
+            <input type="text" id="rep-search" class="form-control" placeholder="🔍 Tên hoặc mã NV..." style="min-width: 200px;">
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 13px; color: var(--text-muted);">Từ:</span>
+              <input type="date" id="rep-from-date" class="form-control">
+            </div>
+            <div style="display: flex; align-items: center; gap: 6px;">
+              <span style="font-size: 13px; color: var(--text-muted);">Đến:</span>
+              <input type="date" id="rep-to-date" class="form-control">
+            </div>
+            <select id="rep-status" class="form-control">
+              <option value="">Tất cả trạng thái</option>
+              <option value="on_time">Đúng giờ</option>
+              <option value="late">Đi muộn</option>
+              <option value="early_leave">Về sớm</option>
+              <option value="completed">Hoàn thành ca</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="applyReportFilters()">Lọc dữ liệu</button>
+            <button class="btn btn-outline btn-sm" onclick="resetReportFilters()">Đặt lại</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Report Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Chi Tiết Bảng Dữ Liệu (<span id="total-rep-rows">0</span> dòng)</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã NV</th>
+                  <th>Họ và Tên</th>
+                  <th>Phòng Ban</th>
+                  <th>Ca Làm</th>
+                  <th>Ngày Làm</th>
+                  <th>Giờ Vào</th>
+                  <th>Giờ Ra</th>
+                  <th>Số Giờ Làm</th>
+                  <th>Trạng Thái</th>
+                  <th>Ghi Chú</th>
+                </tr>
+              </thead>
+              <tbody id="report-tbody">
+                <tr><td colspan="10" style="text-align: center; padding: 24px;">Đang tải báo cáo...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-body" style="padding: 16px 24px; border-top: 1px solid var(--border-color);">
+          <div class="pagination" id="pagination-box"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    let currentUser = null;
+    let currentPage = 1;
+
+    async function initUser() {
+      const res = await apiCall('/api/me');
+      if (res && res.success) {
+        currentUser = res.data;
+        document.getElementById('footer-username').textContent = currentUser.username;
+        renderNav(currentUser.role);
+        if (currentUser.role !== 'admin') {
+          // An o tim kiem neu la nhan vien
+          document.getElementById('rep-search').style.display = 'none';
+          document.getElementById('page-title-text').textContent = 'Lịch Sử Điểm Danh Cá Nhân';
+          document.getElementById('portal-label').textContent = 'Nhân Viên • Đề 27';
+        } else {
+          document.getElementById('portal-label').textContent = 'Admin Portal • Đề 27';
+        }
+      }
+    }
+
+    function renderNav(role) {
+      const nav = document.getElementById('sidebar-nav');
+      if (role === 'admin') {
+        nav.innerHTML = `
+          <div class="menu-category">Tổng Quan</div>
+          <a href="/admin/dashboard"><span>📊</span> <span>Dashboard</span></a>
+          <div class="menu-category">Quản Lý</div>
+          <a href="/admin/employees"><span>👥</span> <span>Nhân Viên</span></a>
+          <a href="/admin/shifts"><span>⏱️</span> <span>Ca Làm Việc</span></a>
+          <a href="/admin/attendance"><span>📋</span> <span>Bảng Điểm Danh</span></a>
+          <div class="menu-category">Dữ Liệu & Hệ Thống</div>
+          <a href="/admin/reports" class="active"><span>📈</span> <span>Lịch Sử & Báo Cáo</span></a>
+          <a href="/admin/audit-logs"><span>🛡️</span> <span>Nhật Ký Audit</span></a>
+          <a href="/admin/profile"><span>⚙️</span> <span>Tài Khoản Cá Nhân</span></a>
+        `;
+      } else {
+        nav.innerHTML = `
+          <div class="menu-category">Chức Năng</div>
+          <a href="/employee/dashboard"><span>🏠</span> <span>Dashboard</span></a>
+          <a href="/employee/attendance"><span>⚡</span> <span>Chấm Công Hôm Nay</span></a>
+          <a href="/employee/history" class="active"><span>📅</span> <span>Lịch Sử Điểm Danh</span></a>
+          <div class="menu-category">Cá Nhân</div>
+          <a href="/employee/profile"><span>👤</span> <span>Hồ Sơ & Mật Khẩu</span></a>
+        `;
+      }
+    }
+
+    async function loadReportData(page = 1) {
+      currentPage = page;
+      const search = document.getElementById('rep-search').value;
+      const fromDate = document.getElementById('rep-from-date').value;
+      const toDate = document.getElementById('rep-to-date').value;
+      const status = document.getElementById('rep-status').value;
+
+      let url;
+      if (currentUser && currentUser.role === 'admin') {
+        url = `/api/reports/admin?page=${page}&limit=20&search=${encodeURIComponent(search)}&from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}&status=${encodeURIComponent(status)}`;
+      } else {
+        url = `/api/reports/employee-history?page=${page}&limit=20&from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}&status=${encodeURIComponent(status)}`;
+      }
+
+      const res = await apiCall(url);
+      if (!res || !res.success) return;
+
+      // Update summary cards
+      const s = res.summary;
+      document.getElementById('sum-records').textContent = s.totalRecords || 0;
+      document.getElementById('sum-late').textContent = s.totalLate || 0;
+      document.getElementById('sum-early').textContent = s.totalEarlyLeave || 0;
+      document.getElementById('sum-hours').textContent = (s.totalHours || 0) + 'h';
+      document.getElementById('total-rep-rows').textContent = res.pagination.total;
+
+      const tbody = document.getElementById('report-tbody');
+      if (res.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="10" style="text-align: center; padding: 32px;" class="empty-state"><h4>Không tìm thấy dữ liệu báo cáo</h4></td></tr>';
+      } else {
+        tbody.innerHTML = res.data.map(item => `
+          <tr>
+            <td><strong>${item.employee_code || currentUser.employee_code}</strong></td>
+            <td>${item.full_name || currentUser.full_name}</td>
+            <td>${item.department || currentUser.department || '-'}</td>
+            <td>${item.shift_name}</td>
+            <td>${formatDateVN(item.work_date)}</td>
+            <td>${item.check_in ? formatTimeVN(item.check_in) : '-'}</td>
+            <td>${item.check_out ? formatTimeVN(item.check_out) : '-'}</td>
+            <td>${item.working_hours > 0 ? item.working_hours + 'h' : '-'}</td>
+            <td>${getStatusBadge(item.status)}</td>
+            <td><small style="color: var(--text-muted);">${item.note || '-'}</small></td>
+          </tr>
+        `).join('');
+      }
+
+      renderPagination(res.pagination);
+    }
+
+    function renderPagination(p) {
+      const box = document.getElementById('pagination-box');
+      if (p.totalPages <= 1) {
+        box.innerHTML = '';
+        return;
+      }
+      let html = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadReportData(${p.page - 1})">« Trước</button>`;
+      for (let i = 1; i <= p.totalPages; i++) {
+        html += `<button class="${i === p.page ? 'active' : ''}" onclick="loadReportData(${i})">${i}</button>`;
+      }
+      html += `<button ${p.page >= p.totalPages ? 'disabled' : ''} onclick="loadReportData(${p.page + 1})">Sau »</button>`;
+      box.innerHTML = html;
+    }
+
+    function applyReportFilters() {
+      loadReportData(1);
+    }
+
+    function resetReportFilters() {
+      document.getElementById('rep-search').value = '';
+      document.getElementById('rep-from-date').value = '';
+      document.getElementById('rep-to-date').value = '';
+      document.getElementById('rep-status').value = '';
+      loadReportData(1);
+    }
+
+    function exportReportCsv() {
+      const search = document.getElementById('rep-search').value;
+      const fromDate = document.getElementById('rep-from-date').value;
+      const toDate = document.getElementById('rep-to-date').value;
+      const status = document.getElementById('rep-status').value;
+
+      const url = `/api/reports/export-csv?search=${encodeURIComponent(search)}&from_date=${encodeURIComponent(fromDate)}&to_date=${encodeURIComponent(toDate)}&status=${encodeURIComponent(status)}`;
+      window.location.href = url;
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await initUser();
+      loadReportData(1);
+    });
+  </script>
+</body>
+</html>

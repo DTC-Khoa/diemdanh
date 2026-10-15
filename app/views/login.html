@@ -1,0 +1,188 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Đăng Nhập - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <style>
+    body {
+      background: linear-gradient(135deg, #0f172a 0%, #1e293b 50%, #0d1b2a 100%);
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 20px;
+    }
+    .login-card {
+      background: #ffffff;
+      width: 100%;
+      max-width: 440px;
+      border-radius: var(--radius-lg);
+      padding: 40px 36px;
+      box-shadow: 0 20px 25px -5px rgba(0, 0, 0, 0.3), 0 8px 10px -6px rgba(0, 0, 0, 0.2);
+    }
+    .login-brand {
+      text-align: center;
+      margin-bottom: 28px;
+    }
+    .brand-icon {
+      width: 58px;
+      height: 58px;
+      background: linear-gradient(135deg, #2563eb, #1d4ed8);
+      color: white;
+      border-radius: 16px;
+      display: inline-flex;
+      align-items: center;
+      justify-content: center;
+      font-size: 28px;
+      margin-bottom: 14px;
+      box-shadow: 0 8px 16px rgba(37, 99, 235, 0.35);
+    }
+    .login-brand h1 {
+      font-size: 22px;
+      font-weight: 700;
+      color: #0f172a;
+    }
+    .login-brand p {
+      font-size: 13px;
+      color: #64748b;
+      margin-top: 4px;
+    }
+    .demo-credentials {
+      background: #f8fafc;
+      border: 1px dashed #cbd5e1;
+      border-radius: var(--radius-sm);
+      padding: 12px 14px;
+      margin-top: 24px;
+      font-size: 12px;
+      color: #475569;
+    }
+    .demo-credentials strong {
+      color: #1e293b;
+    }
+    .demo-btn-group {
+      display: flex;
+      gap: 8px;
+      margin-top: 8px;
+    }
+    .demo-chip {
+      background: #e2e8f0;
+      border: none;
+      padding: 5px 10px;
+      border-radius: 4px;
+      font-size: 11px;
+      cursor: pointer;
+      font-weight: 600;
+      color: #334155;
+      transition: var(--transition);
+    }
+    .demo-chip:hover {
+      background: #cbd5e1;
+    }
+  </style>
+</head>
+<body>
+
+  <div class="login-card">
+    <div class="login-brand">
+      <div class="brand-icon">⏰</div>
+      <h1>HỆ THỐNG ĐIỂM DANH</h1>
+      <p>Đề tài 27 • Cổng đăng nhập quản trị & nhân viên</p>
+    </div>
+
+    <div id="alert-box" style="display: none; padding: 12px; border-radius: 6px; font-size: 13px; margin-bottom: 20px;"></div>
+
+    <form id="loginForm">
+      <div class="form-group">
+        <label for="username">Tên đăng nhập hoặc Email</label>
+        <input type="text" id="username" class="form-control" placeholder="Nhập tên đăng nhập hoặc email" required autocomplete="username">
+      </div>
+
+      <div class="form-group">
+        <label for="password">Mật khẩu</label>
+        <div style="position: relative;">
+          <input type="password" id="password" class="form-control" placeholder="Nhập mật khẩu" required autocomplete="current-password">
+          <button type="button" id="togglePassword" style="position: absolute; right: 12px; top: 50%; transform: translateY(-50%); background: none; border: none; cursor: pointer; color: #64748b; font-size: 14px;">👁️</button>
+        </div>
+      </div>
+
+      <button type="submit" id="btnSubmit" class="btn btn-primary" style="width: 100%; padding: 12px; font-size: 15px; margin-top: 8px;">
+        Đăng Nhập
+      </button>
+    </form>
+
+    <div class="demo-credentials">
+      <div style="font-weight: 600; margin-bottom: 4px;">Tài khoản demo kiểm thử:</div>
+      <div>• <strong>Admin:</strong> admin / <code>Admin@123</code></div>
+      <div>• <strong>Nhân viên:</strong> nv001 / <code>User@123</code></div>
+      <div class="demo-btn-group">
+        <button type="button" class="demo-chip" onclick="fillCredentials('admin', 'Admin@123')">Dùng tài khoản Admin</button>
+        <button type="button" class="demo-chip" onclick="fillCredentials('nv001', 'User@123')">Dùng tài khoản NV</button>
+      </div>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    // Tu dong dien thong tin demo
+    function fillCredentials(u, p) {
+      document.getElementById('username').value = u;
+      document.getElementById('password').value = p;
+    }
+
+    // Toggle hien thi mat khau
+    const toggleBtn = document.getElementById('togglePassword');
+    const pwdInput = document.getElementById('password');
+    toggleBtn.addEventListener('click', () => {
+      const type = pwdInput.getAttribute('type') === 'password' ? 'text' : 'password';
+      pwdInput.setAttribute('type', type);
+      toggleBtn.textContent = type === 'password' ? '👁️' : '🔒';
+    });
+
+    // Kiem tra query params neu co error tu redirect
+    const urlParams = new URLSearchParams(window.location.search);
+    const errParam = urlParams.get('error');
+    if (errParam) {
+      showAlert(errParam, 'error');
+    }
+
+    function showAlert(msg, type = 'error') {
+      const box = document.getElementById('alert-box');
+      box.style.display = 'block';
+      box.style.backgroundColor = type === 'error' ? '#fee2e2' : '#dcfce7';
+      box.style.color = type === 'error' ? '#b91c1c' : '#15803d';
+      box.style.border = type === 'error' ? '1px solid #f87171' : '1px solid #86efac';
+      box.textContent = msg;
+    }
+
+    // Xu ly submit dang nhap
+    document.getElementById('loginForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const btn = document.getElementById('btnSubmit');
+      const username = document.getElementById('username').value.trim();
+      const password = document.getElementById('password').value;
+
+      btn.disabled = true;
+      btn.textContent = 'Đang xác thực...';
+
+      const res = await apiCall('/api/login', {
+        method: 'POST',
+        body: JSON.stringify({ username, password })
+      });
+
+      btn.disabled = false;
+      btn.textContent = 'Đăng Nhập';
+
+      if (res && res.success) {
+        showToast('Đăng nhập thành công! Đang chuyển hướng...', 'success');
+        setTimeout(() => {
+          window.location.href = res.redirectUrl || '/';
+        }, 500);
+      } else {
+        showAlert(res ? res.message : 'Đăng nhập thất bại, vui lòng thử lại', 'error');
+      }
+    });
+  </script>
+</body>
+</html>

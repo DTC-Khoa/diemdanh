@@ -1,0 +1,232 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Tài Khoản Cá Nhân - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p id="portal-label">Portal • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu" id="sidebar-nav">
+          <!-- Rendered dynamically -->
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="footer-username">User</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Hồ Sơ Tài Khoản Cá Nhân</h1>
+          <p>Quản lý thông tin liên hệ, xem ca làm việc và cập nhật mật khẩu bảo mật</p>
+        </div>
+      </div>
+
+      <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 24px;">
+        <!-- Left: Update Profile -->
+        <div class="card">
+          <div class="card-header">
+            <h3>👤 Thông Tin Cá Nhân</h3>
+          </div>
+          <div class="card-body">
+            <form id="profileForm">
+              <div class="form-group">
+                <label>Tên Đăng Nhập</label>
+                <input type="text" id="prof-username" class="form-control" readonly style="background: #f1f5f9; cursor: not-allowed;">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-group">
+                  <label>Mã Nhân Viên</label>
+                  <input type="text" id="prof-code" class="form-control" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                  <label>Vai Trò Hệ Thống</label>
+                  <input type="text" id="prof-role" class="form-control" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                </div>
+              </div>
+
+              <div class="form-group">
+                <label for="prof-fullname">Họ và Tên *</label>
+                <input type="text" id="prof-fullname" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="prof-email">Email Liên Hệ *</label>
+                <input type="email" id="prof-email" class="form-control" required>
+              </div>
+
+              <div class="form-group">
+                <label for="prof-phone">Số Điện Thoại</label>
+                <input type="text" id="prof-phone" class="form-control">
+              </div>
+
+              <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+                <div class="form-group">
+                  <label>Phòng Ban</label>
+                  <input type="text" id="prof-dept" class="form-control" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                </div>
+                <div class="form-group">
+                  <label>Ca Làm Việc Được Gán</label>
+                  <input type="text" id="prof-shift" class="form-control" readonly style="background: #f1f5f9; cursor: not-allowed;">
+                </div>
+              </div>
+
+              <button type="submit" class="btn btn-primary" style="margin-top: 10px;">Lưu Thay Đổi</button>
+            </form>
+          </div>
+        </div>
+
+        <!-- Right: Change Password -->
+        <div class="card">
+          <div class="card-header">
+            <h3>🔒 Đổi Mật Khẩu Bảo Mật</h3>
+          </div>
+          <div class="card-body">
+            <form id="passwordForm">
+              <div class="form-group">
+                <label for="pwd-current">Mật Khẩu Hiện Tại *</label>
+                <input type="password" id="pwd-current" class="form-control" placeholder="Nhập mật khẩu đang dùng" required>
+              </div>
+
+              <div class="form-group">
+                <label for="pwd-new">Mật Khẩu Mới *</label>
+                <input type="password" id="pwd-new" class="form-control" placeholder="Tối thiểu 6 ký tự" required minlength="6">
+              </div>
+
+              <div class="form-group">
+                <label for="pwd-confirm">Xác Nhận Mật Khẩu Mới *</label>
+                <input type="password" id="pwd-confirm" class="form-control" placeholder="Nhập lại mật khẩu mới" required minlength="6">
+              </div>
+
+              <div style="background: #eff6ff; padding: 12px 16px; border-radius: 6px; font-size: 13px; color: #1e40af; margin-bottom: 18px;">
+                💡 <strong>Gợi ý:</strong> Sử dụng mật khẩu mạnh kết hợp chữ hoa, chữ thường, số và ký tự đặc biệt để bảo vệ tài khoản điểm danh của bạn.
+              </div>
+
+              <button type="submit" class="btn btn-danger">Cập Nhật Mật Khẩu</button>
+            </form>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    let currentUser = null;
+
+    async function loadProfile() {
+      const res = await apiCall('/api/me');
+      if (!res || !res.success) return;
+
+      currentUser = res.data;
+      document.getElementById('footer-username').textContent = currentUser.username;
+      renderNav(currentUser.role);
+
+      document.getElementById('prof-username').value = currentUser.username;
+      document.getElementById('prof-code').value = currentUser.employee_code || 'ADM001';
+      document.getElementById('prof-role').value = currentUser.role === 'admin' ? 'Quản Trị Viên (Admin)' : 'Nhân Viên (Employee)';
+      document.getElementById('prof-fullname').value = currentUser.full_name || '';
+      document.getElementById('prof-email').value = currentUser.email || '';
+      document.getElementById('prof-phone').value = currentUser.phone || '';
+      document.getElementById('prof-dept').value = currentUser.department || '-';
+      document.getElementById('prof-shift').value = currentUser.shift_name ? `${currentUser.shift_name} (${currentUser.start_time.slice(0,5)} - ${currentUser.end_time.slice(0,5)})` : 'Chưa gán ca';
+    }
+
+    function renderNav(role) {
+      const nav = document.getElementById('sidebar-nav');
+      if (role === 'admin') {
+        document.getElementById('portal-label').textContent = 'Admin Portal • Đề 27';
+        nav.innerHTML = `
+          <div class="menu-category">Tổng Quan</div>
+          <a href="/admin/dashboard"><span>📊</span> <span>Dashboard</span></a>
+          <div class="menu-category">Quản Lý</div>
+          <a href="/admin/employees"><span>👥</span> <span>Nhân Viên</span></a>
+          <a href="/admin/shifts"><span>⏱️</span> <span>Ca Làm Việc</span></a>
+          <a href="/admin/attendance"><span>📋</span> <span>Bảng Điểm Danh</span></a>
+          <div class="menu-category">Dữ Liệu & Hệ Thống</div>
+          <a href="/admin/reports"><span>📈</span> <span>Lịch Sử & Báo Cáo</span></a>
+          <a href="/admin/audit-logs"><span>🛡️</span> <span>Nhật Ký Audit</span></a>
+          <a href="/admin/profile" class="active"><span>⚙️</span> <span>Tài Khoản Cá Nhân</span></a>
+        `;
+      } else {
+        document.getElementById('portal-label').textContent = 'Nhân Viên • Đề 27';
+        nav.innerHTML = `
+          <div class="menu-category">Chức Năng</div>
+          <a href="/employee/dashboard"><span>🏠</span> <span>Dashboard</span></a>
+          <a href="/employee/attendance"><span>⚡</span> <span>Chấm Công Hôm Nay</span></a>
+          <a href="/employee/history"><span>📅</span> <span>Lịch Sử Điểm Danh</span></a>
+          <div class="menu-category">Cá Nhân</div>
+          <a href="/employee/profile" class="active"><span>👤</span> <span>Hồ Sơ & Mật Khẩu</span></a>
+        `;
+      }
+    }
+
+    // Submit profile update
+    document.getElementById('profileForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const full_name = document.getElementById('prof-fullname').value.trim();
+      const email = document.getElementById('prof-email').value.trim();
+      const phone = document.getElementById('prof-phone').value.trim();
+
+      const res = await apiCall('/api/profile', {
+        method: 'PUT',
+        body: JSON.stringify({ full_name, email, phone })
+      });
+
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadProfile();
+      } else {
+        showToast(res ? res.message : 'Lỗi cập nhật hồ sơ', 'error');
+      }
+    });
+
+    // Submit change password
+    document.getElementById('passwordForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const currentPassword = document.getElementById('pwd-current').value;
+      const newPassword = document.getElementById('pwd-new').value;
+      const confirmPassword = document.getElementById('pwd-confirm').value;
+
+      if (newPassword !== confirmPassword) {
+        showToast('Mật khẩu mới và xác nhận mật khẩu không khớp!', 'warning');
+        return;
+      }
+
+      const res = await apiCall('/api/change-password', {
+        method: 'PUT',
+        body: JSON.stringify({ currentPassword, newPassword, confirmPassword })
+      });
+
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        document.getElementById('passwordForm').reset();
+      } else {
+        showToast(res ? res.message : 'Đổi mật khẩu thất bại', 'error');
+      }
+    });
+
+    document.addEventListener('DOMContentLoaded', loadProfile);
+  </script>
+</body>
+</html>

@@ -1,0 +1,344 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Admin Dashboard - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p>Admin Portal • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Tổng Quan</div>
+          <a href="/admin/dashboard" class="active">
+            <span>📊</span> <span>Dashboard</span>
+          </a>
+
+          <div class="menu-category">Quản Lý</div>
+          <a href="/admin/employees">
+            <span>👥</span> <span>Nhân Viên</span>
+          </a>
+          <a href="/admin/shifts">
+            <span>⏱️</span> <span>Ca Làm Việc</span>
+          </a>
+          <a href="/admin/attendance">
+            <span>📋</span> <span>Bảng Điểm Danh</span>
+          </a>
+
+          <div class="menu-category">Dữ Liệu & Hệ Thống</div>
+          <a href="/admin/reports">
+            <span>📈</span> <span>Lịch Sử & Báo Cáo</span>
+          </a>
+          <a href="/admin/audit-logs">
+            <span>🛡️</span> <span>Nhật Ký Audit</span>
+          </a>
+          <a href="/admin/profile">
+            <span>⚙️</span> <span>Tài Khoản Cá Nhân</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span id="footer-username">Admin</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <!-- Top Header -->
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Dashboard Quản Trị</h1>
+          <p>Thống kê thời gian thực và tổng quan tình hình điểm danh hôm nay</p>
+        </div>
+
+        <div class="header-actions">
+          <div class="user-badge">
+            <div class="avatar-circle" id="user-avatar">A</div>
+            <div class="user-details">
+              <div class="name" id="header-user-name">Quản Trị Viên</div>
+              <span class="role-badge">ADMINISTRATOR</span>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      <!-- Welcome Banner with Live Clock -->
+      <div class="welcome-banner">
+        <div>
+          <h2>Xin chào, <span id="welcome-name">Quản Trị Viên</span> 👋</h2>
+          <p>Hệ thống giám sát và quản lý chấm công đang hoạt động ổn định trên Docker.</p>
+        </div>
+        <div class="digital-clock-banner">
+          <div class="clock-time" id="live-clock-time">--:--:--</div>
+          <div class="clock-date" id="live-clock-date">Đang đồng bộ...</div>
+        </div>
+      </div>
+
+      <!-- Thẻ Thống Kê (Stats Grid) -->
+      <div class="stats-grid">
+        <div class="stat-card">
+          <div class="stat-icon blue">👥</div>
+          <div class="stat-info">
+            <span>Tổng Nhân Viên</span>
+            <h3 id="stat-total-emp">0</h3>
+            <small>Đang hoạt động</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon green">✅</div>
+          <div class="stat-info">
+            <span>Đã Điểm Danh</span>
+            <h3 id="stat-present">0</h3>
+            <small>Có mặt hôm nay</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon red">❌</div>
+          <div class="stat-info">
+            <span>Chưa Điểm Danh</span>
+            <h3 id="stat-absent">0</h3>
+            <small>Vắng mặt / Chưa vào</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon orange">⚠️</div>
+          <div class="stat-info">
+            <span>Đi Muộn Hôm Nay</span>
+            <h3 id="stat-late">0</h3>
+            <small>Vượt mốc cho phép</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon purple">🚪</div>
+          <div class="stat-info">
+            <span>Về Sớm Hôm Nay</span>
+            <h3 id="stat-early">0</h3>
+            <small>Trước giờ quy định</small>
+          </div>
+        </div>
+
+        <div class="stat-card">
+          <div class="stat-icon blue">📊</div>
+          <div class="stat-info">
+            <span>Tỷ Lệ Điểm Danh</span>
+            <h3 id="stat-rate">0%</h3>
+            <small>Tỷ lệ hoàn thành</small>
+          </div>
+        </div>
+      </div>
+
+      <!-- Biểu Đồ Thống Kê -->
+      <div style="display: grid; grid-template-columns: 2fr 1fr; gap: 24px; margin-bottom: 28px;">
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3>📈 Xu Hướng Điểm Danh 7 Ngày Gần Nhất</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="attendanceTrendChart" height="110"></canvas>
+          </div>
+        </div>
+
+        <div class="card" style="margin-bottom: 0;">
+          <div class="card-header">
+            <h3>⏱️ Phân Bổ Theo Ca Làm</h3>
+          </div>
+          <div class="card-body">
+            <canvas id="shiftPieChart" height="110"></canvas>
+          </div>
+        </div>
+      </div>
+
+      <!-- Bảng Danh Sách Điểm Danh Mới Nhất -->
+      <div class="card">
+        <div class="card-header">
+          <h3>📋 Bản Ghi Điểm Danh Mới Nhất</h3>
+          <a href="/admin/attendance" class="btn btn-outline btn-sm">Xem Toàn Bộ ➔</a>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã NV</th>
+                  <th>Họ và Tên</th>
+                  <th>Phòng Ban</th>
+                  <th>Ca Làm</th>
+                  <th>Ngày Làm</th>
+                  <th>Giờ Vào</th>
+                  <th>Giờ Ra</th>
+                  <th>Số Giờ</th>
+                  <th>Trạng Thái</th>
+                </tr>
+              </thead>
+              <tbody id="recent-table-body">
+                <tr><td colspan="9" style="text-align: center; padding: 24px;">Đang tải dữ liệu...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    let trendChart = null;
+    let shiftChart = null;
+
+    initLiveClock();
+
+    async function loadDashboard() {
+      const res = await apiCall('/api/dashboard/admin');
+      if (!res || !res.success) return;
+
+      const { summary, recentAttendance, chartData, shiftStats } = res.data;
+
+      // Gan thong so
+      document.getElementById('stat-total-emp').textContent = summary.totalEmployees;
+      document.getElementById('stat-present').textContent = summary.presentToday;
+      document.getElementById('stat-absent').textContent = summary.notCheckedIn;
+      document.getElementById('stat-late').textContent = summary.lateToday;
+      document.getElementById('stat-early').textContent = summary.earlyLeaveToday;
+      document.getElementById('stat-rate').textContent = summary.attendanceRate + '%';
+
+      // Bang diem danh moi nhat
+      const tbody = document.getElementById('recent-table-body');
+      if (!recentAttendance || recentAttendance.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px;">Chưa có bản ghi điểm danh nào</td></tr>';
+      } else {
+        tbody.innerHTML = recentAttendance.map(item => `
+          <tr>
+            <td><strong>${item.employee_code}</strong></td>
+            <td>${item.full_name}</td>
+            <td>${item.department || '-'}</td>
+            <td>${item.shift_name}</td>
+            <td>${formatDateVN(item.work_date)}</td>
+            <td>${item.check_in ? formatTimeVN(item.check_in) : '-'}</td>
+            <td>${item.check_out ? formatTimeVN(item.check_out) : '-'}</td>
+            <td>${item.working_hours > 0 ? item.working_hours + 'h' : '-'}</td>
+            <td>${getStatusBadge(item.status)}</td>
+          </tr>
+        `).join('');
+      }
+
+      // Ve bieu do xu huong
+      renderTrendChart(chartData);
+
+      // Ve bieu do ca lam
+      renderShiftChart(shiftStats);
+    }
+
+    function renderTrendChart(chartData) {
+      const ctx = document.getElementById('attendanceTrendChart').getContext('2d');
+      if (trendChart) trendChart.destroy();
+
+      const labels = chartData.map(d => d.date_label || d.work_date);
+      const onTimeData = chartData.map(d => d.count_on_time || 0);
+      const lateData = chartData.map(d => d.count_late || 0);
+      const earlyData = chartData.map(d => d.count_early_leave || 0);
+
+      trendChart = new Chart(ctx, {
+        type: 'bar',
+        data: {
+          labels: labels,
+          datasets: [
+            {
+              label: 'Đúng giờ',
+              data: onTimeData,
+              backgroundColor: '#16a34a',
+              borderRadius: 6
+            },
+            {
+              label: 'Đi muộn',
+              data: lateData,
+              backgroundColor: '#ea580c',
+              borderRadius: 6
+            },
+            {
+              label: 'Về sớm',
+              data: earlyData,
+              backgroundColor: '#0284c7',
+              borderRadius: 6
+            }
+          ]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'top' }
+          },
+          scales: {
+            x: { stacked: true },
+            y: { stacked: true, beginAtZero: true, ticks: { precision: 0 } }
+          }
+        }
+      });
+    }
+
+    function renderShiftChart(shiftStats) {
+      const ctx = document.getElementById('shiftPieChart').getContext('2d');
+      if (shiftChart) shiftChart.destroy();
+
+      const labels = shiftStats.map(s => s.shift_name);
+      const counts = shiftStats.map(s => s.attendance_count || 0);
+
+      shiftChart = new Chart(ctx, {
+        type: 'doughnut',
+        data: {
+          labels: labels,
+          datasets: [{
+            data: counts.length > 0 && counts.some(c => c > 0) ? counts : [1],
+            backgroundColor: ['#2563eb', '#10b981', '#f59e0b', '#8b5cf6'],
+            borderWidth: 0
+          }]
+        },
+        options: {
+          responsive: true,
+          maintainAspectRatio: false,
+          plugins: {
+            legend: { position: 'bottom' }
+          }
+        }
+      });
+    }
+
+    // Load thong tin user hien tai
+    async function loadCurrentUser() {
+      const res = await apiCall('/api/me');
+      if (res && res.success) {
+        const u = res.data;
+        document.getElementById('header-user-name').textContent = u.full_name || u.username;
+        document.getElementById('welcome-name').textContent = u.full_name || u.username;
+        document.getElementById('footer-username').textContent = u.username;
+        document.getElementById('user-avatar').textContent = (u.full_name || u.username)[0].toUpperCase();
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', () => {
+      loadCurrentUser();
+      loadDashboard();
+    });
+  </script>
+</body>
+</html>

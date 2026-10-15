@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Ca Làm Việc - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p>Admin Portal • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Tổng Quan</div>
+          <a href="/admin/dashboard">
+            <span>📊</span> <span>Dashboard</span>
+          </a>
+
+          <div class="menu-category">Quản Lý</div>
+          <a href="/admin/employees">
+            <span>👥</span> <span>Nhân Viên</span>
+          </a>
+          <a href="/admin/shifts" class="active">
+            <span>⏱️</span> <span>Ca Làm Việc</span>
+          </a>
+          <a href="/admin/attendance">
+            <span>📋</span> <span>Bảng Điểm Danh</span>
+          </a>
+
+          <div class="menu-category">Dữ Liệu & Hệ Thống</div>
+          <a href="/admin/reports">
+            <span>📈</span> <span>Lịch Sử & Báo Cáo</span>
+          </a>
+          <a href="/admin/audit-logs">
+            <span>🛡️</span> <span>Nhật Ký Audit</span>
+          </a>
+          <a href="/admin/profile">
+            <span>⚙️</span> <span>Tài Khoản Cá Nhân</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span>Admin</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Quản Lý Ca Làm Việc</h1>
+          <p>Thiết lập khung giờ làm, thời gian cho phép đi muộn, về sớm và ca làm qua đêm</p>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openAddShiftModal()">
+            <span>➕</span> <span>Thêm Ca Làm Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Shifts Table / Cards -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Danh Sách Ca Làm Việc Trong Hệ Thống</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Tên Ca Làm</th>
+                  <th>Giờ Bắt Đầu</th>
+                  <th>Giờ Kết Thúc</th>
+                  <th>Cho Phép Đi Muộn</th>
+                  <th>Cho Phép Về Sớm</th>
+                  <th>Tính Chất Ca</th>
+                  <th>Số Nhân Viên Gán</th>
+                  <th>Mô Tả</th>
+                  <th style="text-align: right;">Thao Tác</th>
+                </tr>
+              </thead>
+              <tbody id="shifts-tbody">
+                <tr><td colspan="9" style="text-align: center; padding: 24px;">Đang tải danh sách ca làm...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal Thêm / Sửa Ca Làm -->
+  <div class="modal-overlay" id="shiftModal">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h3 id="shift-modal-title">Thêm Ca Làm Mới</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="shiftForm">
+        <div class="modal-body">
+          <input type="hidden" id="shift-id">
+
+          <div class="form-group">
+            <label for="shift-name">Tên Ca Làm Việc *</label>
+            <input type="text" id="shift-name" class="form-control" placeholder="Ví dụ: Ca Hành Chính, Ca Sáng, Ca Đêm" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="shift-start">Giờ Bắt Đầu *</label>
+              <input type="time" id="shift-start" class="form-control" required step="1">
+            </div>
+            <div class="form-group">
+              <label for="shift-end">Giờ Kết Thúc *</label>
+              <input type="time" id="shift-end" class="form-control" required step="1">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="shift-late-grace">Cho Phép Đi Muộn (phút)</label>
+              <input type="number" id="shift-late-grace" class="form-control" value="15" min="0" max="120" required>
+            </div>
+            <div class="form-group">
+              <label for="shift-early-grace">Cho Phép Về Sớm (phút)</label>
+              <input type="number" id="shift-early-grace" class="form-control" value="15" min="0" max="120" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="shift-desc">Ghi Chú / Mô Tả</label>
+            <textarea id="shift-desc" class="form-control" rows="2" placeholder="Ghi chú chi tiết về ca làm..."></textarea>
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('shiftModal')">Hủy</button>
+          <button type="submit" class="btn btn-primary">Lưu Ca Làm</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    async function loadShifts() {
+      const res = await apiCall('/api/shifts');
+      if (!res || !res.success) return;
+
+      const tbody = document.getElementById('shifts-tbody');
+      if (res.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 24px;">Chưa có ca làm việc nào</td></tr>';
+        return;
+      }
+
+      tbody.innerHTML = res.data.map(s => `
+        <tr>
+          <td><strong>${s.name}</strong></td>
+          <td><span style="font-size: 14px; font-weight: 600; color: #2563eb;">${s.start_time.slice(0, 5)}</span></td>
+          <td><span style="font-size: 14px; font-weight: 600; color: #059669;">${s.end_time.slice(0, 5)}</span></td>
+          <td>${s.late_grace_minutes} phút</td>
+          <td>${s.early_grace_minutes} phút</td>
+          <td>
+            ${s.is_overnight ? '<span class="badge badge-warning">🌙 Ca qua đêm</span>' : '<span class="badge badge-success">☀️ Trong ngày</span>'}
+          </td>
+          <td><strong>${s.employee_count}</strong> nhân viên</td>
+          <td><small style="color: var(--text-muted);">${s.description || '-'}</small></td>
+          <td style="text-align: right; white-space: nowrap;">
+            <button class="btn btn-outline btn-sm" onclick="openEditShiftModal(${s.id})">Sửa</button>
+            <button class="btn btn-danger btn-sm" onclick="deleteShift(${s.id}, '${s.name}', ${s.employee_count})">Xóa</button>
+          </td>
+        </tr>
+      `).join('');
+    }
+
+    function openAddShiftModal() {
+      document.getElementById('shift-modal-title').textContent = 'Thêm Ca Làm Mới';
+      document.getElementById('shiftForm').reset();
+      document.getElementById('shift-id').value = '';
+      openModal('shiftModal');
+    }
+
+    async function openEditShiftModal(id) {
+      const res = await apiCall(`/api/shifts/${id}`);
+      if (!res || !res.success) return;
+      const s = res.data;
+
+      document.getElementById('shift-modal-title').textContent = 'Cập Nhật Ca Làm Việc';
+      document.getElementById('shift-id').value = s.id;
+      document.getElementById('shift-name').value = s.name;
+      document.getElementById('shift-start').value = s.start_time;
+      document.getElementById('shift-end').value = s.end_time;
+      document.getElementById('shift-late-grace').value = s.late_grace_minutes;
+      document.getElementById('shift-early-grace').value = s.early_grace_minutes;
+      document.getElementById('shift-desc').value = s.description || '';
+
+      openModal('shiftModal');
+    }
+
+    document.getElementById('shiftForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('shift-id').value;
+      const isEdit = Boolean(id);
+
+      const payload = {
+        name: document.getElementById('shift-name').value.trim(),
+        start_time: document.getElementById('shift-start').value,
+        end_time: document.getElementById('shift-end').value,
+        late_grace_minutes: document.getElementById('shift-late-grace').value,
+        early_grace_minutes: document.getElementById('shift-early-grace').value,
+        description: document.getElementById('shift-desc').value.trim()
+      };
+
+      const url = isEdit ? `/api/shifts/${id}` : '/api/shifts';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await apiCall(url, {
+        method,
+        body: JSON.stringify(payload)
+      });
+
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        closeModal('shiftModal');
+        loadShifts();
+      } else {
+        showToast(res ? res.message : 'Có lỗi xảy ra', 'error');
+      }
+    });
+
+    async function deleteShift(id, name, empCount) {
+      if (empCount > 0) {
+        alert(`Không thể xóa ca làm "${name}" vì có ${empCount} nhân viên đang được phân ca này! Vui lòng chuyển ca cho nhân viên trước khi xóa.`);
+        return;
+      }
+
+      if (!confirm(`Bạn có chắc chắn muốn xóa ca làm "${name}"? Thao tác này không thể hoàn tác.`)) {
+        return;
+      }
+
+      const res = await apiCall(`/api/shifts/${id}`, { method: 'DELETE' });
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadShifts();
+      } else {
+        showToast(res ? res.message : 'Xóa ca làm thất bại', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', loadShifts);
+  </script>
+</body>
+</html>

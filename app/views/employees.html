@@ -1,0 +1,394 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Quản Lý Nhân Viên - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p>Admin Portal • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Tổng Quan</div>
+          <a href="/admin/dashboard">
+            <span>📊</span> <span>Dashboard</span>
+          </a>
+
+          <div class="menu-category">Quản Lý</div>
+          <a href="/admin/employees" class="active">
+            <span>👥</span> <span>Nhân Viên</span>
+          </a>
+          <a href="/admin/shifts">
+            <span>⏱️</span> <span>Ca Làm Việc</span>
+          </a>
+          <a href="/admin/attendance">
+            <span>📋</span> <span>Bảng Điểm Danh</span>
+          </a>
+
+          <div class="menu-category">Dữ Liệu & Hệ Thống</div>
+          <a href="/admin/reports">
+            <span>📈</span> <span>Lịch Sử & Báo Cáo</span>
+          </a>
+          <a href="/admin/audit-logs">
+            <span>🛡️</span> <span>Nhật Ký Audit</span>
+          </a>
+          <a href="/admin/profile">
+            <span>⚙️</span> <span>Tài Khoản Cá Nhân</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span>Admin</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Quản Lý Nhân Viên</h1>
+          <p>Thêm mới, chỉnh sửa thông tin, phân ca và quản lý trạng thái tài khoản nhân sự</p>
+        </div>
+
+        <div class="header-actions">
+          <button class="btn btn-primary" onclick="openAddEmployeeModal()">
+            <span>➕</span> <span>Thêm Nhân Viên Mới</span>
+          </button>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="card">
+        <div class="card-body" style="padding: 16px 20px;">
+          <div class="filter-bar" style="margin-bottom: 0;">
+            <input type="text" id="filter-search" class="form-control" placeholder="🔍 Tìm theo tên, mã NV, email..." style="min-width: 280px;">
+            <select id="filter-department" class="form-control">
+              <option value="">Tất cả phòng ban</option>
+              <option value="Phòng Kỹ Thuật">Phòng Kỹ Thuật</option>
+              <option value="Phòng Kế Toán">Phòng Kế Toán</option>
+              <option value="Phòng Kinh Doanh">Phòng Kinh Doanh</option>
+              <option value="Phòng Nhân Sự">Phòng Nhân Sự</option>
+            </select>
+            <select id="filter-status" class="form-control">
+              <option value="">Tất cả trạng thái</option>
+              <option value="active">Đang hoạt động</option>
+              <option value="inactive">Đã khóa</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="applyFilters()">Lọc dữ liệu</button>
+            <button class="btn btn-outline btn-sm" onclick="resetFilters()">Đặt lại</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Employee List Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Danh Sách Nhân Sự (<span id="total-employees-count">0</span> nhân viên)</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Mã NV</th>
+                  <th>Họ và Tên</th>
+                  <th>Tài Khoản / Email</th>
+                  <th>Số Điện Thoại</th>
+                  <th>Phòng Ban</th>
+                  <th>Ca Làm Việc</th>
+                  <th>Vai Trò</th>
+                  <th>Trạng Thái</th>
+                  <th style="text-align: right;">Hành Động</th>
+                </tr>
+              </thead>
+              <tbody id="employee-tbody">
+                <tr><td colspan="9" style="text-align: center; padding: 24px;">Đang tải danh sách nhân viên...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-body" style="padding: 16px 24px; border-top: 1px solid var(--border-color);">
+          <div class="pagination" id="pagination-box"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <!-- Modal Thêm / Sửa Nhân Viên -->
+  <div class="modal-overlay" id="employeeModal">
+    <div class="modal-content" style="max-width: 600px;">
+      <div class="modal-header">
+        <h3 id="modal-title">Thêm Nhân Viên Mới</h3>
+        <button class="modal-close">&times;</button>
+      </div>
+      <form id="employeeForm">
+        <div class="modal-body">
+          <input type="hidden" id="emp-id">
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="emp-code">Mã Nhân Viên *</label>
+              <input type="text" id="emp-code" class="form-control" placeholder="NV001" required>
+            </div>
+            <div class="form-group">
+              <label for="emp-username">Tên Đăng Nhập *</label>
+              <input type="text" id="emp-username" class="form-control" placeholder="nguyenvana" required>
+            </div>
+          </div>
+
+          <div class="form-group">
+            <label for="emp-fullname">Họ và Tên *</label>
+            <input type="text" id="emp-fullname" class="form-control" placeholder="Nguyễn Văn A" required>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="emp-email">Email Liên Hệ *</label>
+              <input type="email" id="emp-email" class="form-control" placeholder="a@diemdanh.dtc" required>
+            </div>
+            <div class="form-group">
+              <label for="emp-phone">Số Điện Thoại</label>
+              <input type="text" id="emp-phone" class="form-control" placeholder="0912345678">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="emp-department">Phòng Ban</label>
+              <select id="emp-department" class="form-control">
+                <option value="Phòng Kỹ Thuật">Phòng Kỹ Thuật</option>
+                <option value="Phòng Kế Toán">Phòng Kế Toán</option>
+                <option value="Phòng Kinh Doanh">Phòng Kinh Doanh</option>
+                <option value="Phòng Nhân Sự">Phòng Nhân Sự</option>
+                <option value="Ban Giám Đốc">Ban Giám Đốc</option>
+              </select>
+            </div>
+            <div class="form-group">
+              <label for="emp-position">Chức Vụ</label>
+              <input type="text" id="emp-position" class="form-control" placeholder="Kỹ sư phần mềm">
+            </div>
+          </div>
+
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 14px;">
+            <div class="form-group">
+              <label for="emp-shift">Phân Ca Làm Việc *</label>
+              <select id="emp-shift" class="form-control" required></select>
+            </div>
+            <div class="form-group">
+              <label for="emp-role">Vai Trò Phân Quyền *</label>
+              <select id="emp-role" class="form-control">
+                <option value="employee">Nhân Viên (Employee)</option>
+                <option value="admin">Quản Trị Viên (Admin)</option>
+              </select>
+            </div>
+          </div>
+
+          <div class="form-group" id="pwd-field-group">
+            <label for="emp-password">Mật Khẩu Khởi Tạo (mặc định: User@123)</label>
+            <input type="password" id="emp-password" class="form-control" placeholder="Để trống sẽ dùng User@123">
+          </div>
+        </div>
+
+        <div class="modal-footer">
+          <button type="button" class="btn btn-outline" onclick="closeModal('employeeModal')">Hủy Bỏ</button>
+          <button type="submit" id="btn-save-emp" class="btn btn-primary">Lưu Nhân Viên</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    let currentPage = 1;
+    let shiftList = [];
+
+    async function loadShiftsDropdown() {
+      const res = await apiCall('/api/shifts');
+      if (res && res.success) {
+        shiftList = res.data;
+        const select = document.getElementById('emp-shift');
+        select.innerHTML = shiftList.map(s => `
+          <option value="${s.id}">${s.name} (${s.start_time.slice(0,5)} - ${s.end_time.slice(0,5)})</option>
+        `).join('');
+      }
+    }
+
+    async function loadEmployees(page = 1) {
+      currentPage = page;
+      const search = document.getElementById('filter-search').value;
+      const department = document.getElementById('filter-department').value;
+      const status = document.getElementById('filter-status').value;
+
+      const url = `/api/employees?page=${page}&limit=10&search=${encodeURIComponent(search)}&department=${encodeURIComponent(department)}&status=${encodeURIComponent(status)}`;
+      const res = await apiCall(url);
+      if (!res || !res.success) return;
+
+      document.getElementById('total-employees-count').textContent = res.pagination.total;
+
+      const tbody = document.getElementById('employee-tbody');
+      if (res.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="9" style="text-align: center; padding: 32px;" class="empty-state"><h4>Không tìm thấy nhân viên phù hợp</h4></td></tr>';
+      } else {
+        tbody.innerHTML = res.data.map(emp => `
+          <tr>
+            <td><strong>${emp.employee_code}</strong></td>
+            <td>${emp.full_name}</td>
+            <td>
+              <div>${emp.username}</div>
+              <small style="color: var(--text-muted);">${emp.email}</small>
+            </td>
+            <td>${emp.phone || '-'}</td>
+            <td>${emp.department || '-'}</td>
+            <td>${emp.shift_name ? `<span class="badge badge-info">${emp.shift_name}</span>` : '<span style="color: #94a3b8;">Chưa gán</span>'}</td>
+            <td>${getStatusBadge(emp.role)}</td>
+            <td>${getStatusBadge(emp.status)}</td>
+            <td style="text-align: right; white-space: nowrap;">
+              <button class="btn btn-outline btn-sm" onclick="openEditModal(${emp.id})">Sửa</button>
+              <button class="btn ${emp.status === 'active' ? 'btn-danger' : 'btn-success'} btn-sm" onclick="toggleEmployeeStatus(${emp.id}, '${emp.full_name}', '${emp.status}')">
+                ${emp.status === 'active' ? 'Khóa' : 'Kích hoạt'}
+              </button>
+            </td>
+          </tr>
+        `).join('');
+      }
+
+      renderPagination(res.pagination);
+    }
+
+    function renderPagination(p) {
+      const box = document.getElementById('pagination-box');
+      if (p.totalPages <= 1) {
+        box.innerHTML = '';
+        return;
+      }
+      let html = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadEmployees(${p.page - 1})">« Trước</button>`;
+      for (let i = 1; i <= p.totalPages; i++) {
+        html += `<button class="${i === p.page ? 'active' : ''}" onclick="loadEmployees(${i})">${i}</button>`;
+      }
+      html += `<button ${p.page >= p.totalPages ? 'disabled' : ''} onclick="loadEmployees(${p.page + 1})">Sau »</button>`;
+      box.innerHTML = html;
+    }
+
+    function applyFilters() {
+      loadEmployees(1);
+    }
+
+    function resetFilters() {
+      document.getElementById('filter-search').value = '';
+      document.getElementById('filter-department').value = '';
+      document.getElementById('filter-status').value = '';
+      loadEmployees(1);
+    }
+
+    // Modal Them
+    function openAddEmployeeModal() {
+      document.getElementById('modal-title').textContent = 'Thêm Nhân Viên Mới';
+      document.getElementById('employeeForm').reset();
+      document.getElementById('emp-id').value = '';
+      document.getElementById('emp-code').readOnly = false;
+      document.getElementById('emp-username').readOnly = false;
+      document.getElementById('pwd-field-group').style.display = 'block';
+      openModal('employeeModal');
+    }
+
+    // Modal Sua
+    async function openEditModal(empId) {
+      const res = await apiCall(`/api/employees/${empId}`);
+      if (!res || !res.success) return;
+      const emp = res.data;
+
+      document.getElementById('modal-title').textContent = 'Cập Nhật Nhân Viên';
+      document.getElementById('emp-id').value = emp.id;
+      document.getElementById('emp-code').value = emp.employee_code;
+      document.getElementById('emp-code').readOnly = true;
+      document.getElementById('emp-username').value = emp.username;
+      document.getElementById('emp-username').readOnly = true;
+      document.getElementById('emp-fullname').value = emp.full_name;
+      document.getElementById('emp-email').value = emp.email;
+      document.getElementById('emp-phone').value = emp.phone || '';
+      document.getElementById('emp-department').value = emp.department || 'Phòng Kỹ Thuật';
+      document.getElementById('emp-position').value = emp.position || '';
+      document.getElementById('emp-shift').value = emp.shift_id || 1;
+      document.getElementById('emp-role').value = emp.role;
+      document.getElementById('pwd-field-group').style.display = 'none';
+
+      openModal('employeeModal');
+    }
+
+    // Submit form
+    document.getElementById('employeeForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const id = document.getElementById('emp-id').value;
+      const isEdit = Boolean(id);
+
+      const payload = {
+        employee_code: document.getElementById('emp-code').value.trim(),
+        username: document.getElementById('emp-username').value.trim(),
+        full_name: document.getElementById('emp-fullname').value.trim(),
+        email: document.getElementById('emp-email').value.trim(),
+        phone: document.getElementById('emp-phone').value.trim(),
+        department: document.getElementById('emp-department').value,
+        position: document.getElementById('emp-position').value.trim(),
+        shift_id: document.getElementById('emp-shift').value,
+        role: document.getElementById('emp-role').value
+      };
+
+      if (!isEdit) {
+        payload.password = document.getElementById('emp-password').value || 'User@123';
+      }
+
+      const url = isEdit ? `/api/employees/${id}` : '/api/employees';
+      const method = isEdit ? 'PUT' : 'POST';
+
+      const res = await apiCall(url, {
+        method,
+        body: JSON.stringify(payload)
+      });
+
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        closeModal('employeeModal');
+        loadEmployees(currentPage);
+      } else {
+        showToast(res ? res.message : 'Có lỗi xảy ra', 'error');
+      }
+    });
+
+    // Khoa / Mo khoa
+    async function toggleEmployeeStatus(id, name, currentStatus) {
+      const action = currentStatus === 'active' ? 'khóa' : 'kích hoạt lại';
+      if (!confirm(`Bạn có chắc chắn muốn ${action} tài khoản nhân viên "${name}"?`)) {
+        return;
+      }
+
+      const res = await apiCall(`/api/employees/${id}/toggle-status`, { method: 'PATCH' });
+      if (res && res.success) {
+        showToast(res.message, 'success');
+        loadEmployees(currentPage);
+      } else {
+        showToast(res ? res.message : 'Thao tác thất bại', 'error');
+      }
+    }
+
+    document.addEventListener('DOMContentLoaded', async () => {
+      await loadShiftsDropdown();
+      loadEmployees(1);
+    });
+  </script>
+</body>
+</html>

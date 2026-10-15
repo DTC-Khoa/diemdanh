@@ -1,0 +1,196 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Nhật Ký Audit - Hệ Thống Điểm Danh DTC-Khoa</title>
+  <link rel="stylesheet" href="/css/style.css">
+</head>
+<body>
+
+  <div class="dashboard-container">
+    <!-- Sidebar -->
+    <aside class="sidebar">
+      <div>
+        <div class="sidebar-logo">
+          <div class="logo-icon">⏰</div>
+          <div>
+            <h2>ĐIỂM DANH</h2>
+            <p>Admin Portal • Đề 27</p>
+          </div>
+        </div>
+
+        <nav class="sidebar-menu">
+          <div class="menu-category">Tổng Quan</div>
+          <a href="/admin/dashboard">
+            <span>📊</span> <span>Dashboard</span>
+          </a>
+
+          <div class="menu-category">Quản Lý</div>
+          <a href="/admin/employees">
+            <span>👥</span> <span>Nhân Viên</span>
+          </a>
+          <a href="/admin/shifts">
+            <span>⏱️</span> <span>Ca Làm Việc</span>
+          </a>
+          <a href="/admin/attendance">
+            <span>📋</span> <span>Bảng Điểm Danh</span>
+          </a>
+
+          <div class="menu-category">Dữ Liệu & Hệ Thống</div>
+          <a href="/admin/reports">
+            <span>📈</span> <span>Lịch Sử & Báo Cáo</span>
+          </a>
+          <a href="/admin/audit-logs" class="active">
+            <span>🛡️</span> <span>Nhật Ký Audit</span>
+          </a>
+          <a href="/admin/profile">
+            <span>⚙️</span> <span>Tài Khoản Cá Nhân</span>
+          </a>
+        </nav>
+      </div>
+
+      <div class="sidebar-footer">
+        <span>Admin</span>
+        <a href="/logout" class="btn btn-outline btn-sm" style="color: #ef4444; border-color: rgba(239,68,68,0.3); padding: 4px 8px;">Đăng xuất</a>
+      </div>
+    </aside>
+
+    <!-- Main Content -->
+    <main class="main-content">
+      <div class="top-header">
+        <div class="page-title">
+          <h1>Nhật Ký Kiểm Toán (Audit Logs)</h1>
+          <p>Truy vết toàn bộ thao tác quan trọng: Sửa giờ chấm công, tạo/sửa nhân viên, ca làm việc và đổi mật khẩu</p>
+        </div>
+      </div>
+
+      <!-- Filter Bar -->
+      <div class="card">
+        <div class="card-body" style="padding: 16px 20px;">
+          <div class="filter-bar" style="margin-bottom: 0;">
+            <input type="text" id="audit-search" class="form-control" placeholder="🔍 Tìm theo lý do, người thao tác..." style="min-width: 250px;">
+            <select id="audit-action" class="form-control">
+              <option value="">Tất cả hành động</option>
+              <option value="ADJUST_ATTENDANCE">Điều chỉnh điểm danh</option>
+              <option value="CREATE_EMPLOYEE">Tạo nhân viên</option>
+              <option value="UPDATE_EMPLOYEE">Sửa nhân viên</option>
+              <option value="ACTIVATE_USER">Kích hoạt tài khoản</option>
+              <option value="DEACTIVATE_USER">Khóa tài khoản</option>
+              <option value="CREATE_SHIFT">Tạo ca làm</option>
+              <option value="UPDATE_SHIFT">Sửa ca làm</option>
+              <option value="DELETE_SHIFT">Xóa ca làm</option>
+            </select>
+            <button class="btn btn-primary btn-sm" onclick="applyAuditFilters()">Lọc dữ liệu</button>
+            <button class="btn btn-outline btn-sm" onclick="resetAuditFilters()">Đặt lại</button>
+          </div>
+        </div>
+      </div>
+
+      <!-- Audit Table -->
+      <div class="card">
+        <div class="card-header">
+          <h3>Lịch Sử Thao Tác Hệ Thống (<span id="total-audit-count">0</span> bản ghi)</h3>
+        </div>
+        <div class="card-body" style="padding: 0;">
+          <div class="table-responsive">
+            <table>
+              <thead>
+                <tr>
+                  <th>Thời Gian</th>
+                  <th>Người Thực Hiện</th>
+                  <th>Hành Động</th>
+                  <th>Bảng Dữ Liệu</th>
+                  <th>ID Bản Ghi</th>
+                  <th>Lý Do / Nội Dung Thay Đổi</th>
+                  <th>Địa Chỉ IP</th>
+                </tr>
+              </thead>
+              <tbody id="audit-tbody">
+                <tr><td colspan="7" style="text-align: center; padding: 24px;">Đang tải nhật ký...</td></tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+        <div class="card-body" style="padding: 16px 24px; border-top: 1px solid var(--border-color);">
+          <div class="pagination" id="pagination-box"></div>
+        </div>
+      </div>
+
+    </main>
+  </div>
+
+  <script src="/js/main.js"></script>
+  <script>
+    let currentPage = 1;
+
+    function getActionBadge(action) {
+      if (action === 'ADJUST_ATTENDANCE') return '<span class="badge badge-warning">⚡ Điều chỉnh giờ chấm công</span>';
+      if (action.startsWith('CREATE')) return '<span class="badge badge-success">➕ ' + action + '</span>';
+      if (action.startsWith('UPDATE')) return '<span class="badge badge-info">✏️ ' + action + '</span>';
+      if (action.includes('DEACTIVATE') || action.startsWith('DELETE')) return '<span class="badge badge-danger">🗑️ ' + action + '</span>';
+      return `<span class="badge badge-info">${action}</span>`;
+    }
+
+    async function loadAuditLogs(page = 1) {
+      currentPage = page;
+      const search = document.getElementById('audit-search').value;
+      const action = document.getElementById('audit-action').value;
+
+      const url = `/api/audit-logs?page=${page}&limit=20&search=${encodeURIComponent(search)}&action=${encodeURIComponent(action)}`;
+      const res = await apiCall(url);
+      if (!res || !res.success) return;
+
+      document.getElementById('total-audit-count').textContent = res.pagination.total;
+
+      const tbody = document.getElementById('audit-tbody');
+      if (res.data.length === 0) {
+        tbody.innerHTML = '<tr><td colspan="7" style="text-align: center; padding: 32px;" class="empty-state"><h4>Chưa có bản ghi nhật ký kiểm toán nào</h4></td></tr>';
+      } else {
+        tbody.innerHTML = res.data.map(item => `
+          <tr>
+            <td><small>${formatDateTimeVN(item.created_at)}</small></td>
+            <td><strong>${item.operator_username || 'Hệ thống'}</strong></td>
+            <td>${getActionBadge(item.action)}</td>
+            <td><code>${item.target_table}</code></td>
+            <td>#${item.target_id}</td>
+            <td>
+              <div style="font-weight: 600; color: #1e293b;">${item.reason || '-'}</div>
+              ${item.new_values ? `<small style="color: #64748b; font-family: monospace; display: block; max-width: 350px; overflow: hidden; text-overflow: ellipsis; white-space: nowrap;">${item.new_values}</small>` : ''}
+            </td>
+            <td><small style="color: var(--text-muted);">${item.ip_address || '-'}</small></td>
+          </tr>
+        `).join('');
+      }
+
+      renderPagination(res.pagination);
+    }
+
+    function renderPagination(p) {
+      const box = document.getElementById('pagination-box');
+      if (p.totalPages <= 1) {
+        box.innerHTML = '';
+        return;
+      }
+      let html = `<button ${p.page <= 1 ? 'disabled' : ''} onclick="loadAuditLogs(${p.page - 1})">« Trước</button>`;
+      for (let i = 1; i <= p.totalPages; i++) {
+        html += `<button class="${i === p.page ? 'active' : ''}" onclick="loadAuditLogs(${i})">${i}</button>`;
+      }
+      html += `<button ${p.page >= p.totalPages ? 'disabled' : ''} onclick="loadAuditLogs(${p.page + 1})">Sau »</button>`;
+      box.innerHTML = html;
+    }
+
+    function applyAuditFilters() {
+      loadAuditLogs(1);
+    }
+
+    function resetAuditFilters() {
+      document.getElementById('audit-search').value = '';
+      document.getElementById('audit-action').value = '';
+      loadAuditLogs(1);
+    }
+
+    document.addEventListener('DOMContentLoaded', () => loadAuditLogs(1));
+  </script>
+</body>
+</html>

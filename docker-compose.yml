@@ -1,0 +1,90 @@
+version: '3.8'
+
+networks:
+  app-net:
+    driver: bridge
+
+volumes:
+  mysql_data:
+
+services:
+  # ============================================================
+  # 1. DATABASE MYSQL 8.0
+  # ============================================================
+  mysql:
+    image: mysql:8.0
+    container_name: mysql_db
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+      MYSQL_DATABASE: ${DB_NAME:-attendance_db}
+    volumes:
+      - mysql_data:/var/lib/mysql
+      - ./app/database/init.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    healthcheck:
+      test: ["CMD-SHELL", "mysqladmin ping -h localhost -u root -p$${MYSQL_ROOT_PASSWORD}"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+      start_period: 15s
+    networks:
+      - app-net
+    restart: always
+
+  # ============================================================
+  # 2. PHPMYADMIN (QUAN TRI DATABASE TRUC QUAN)
+  # ============================================================
+  phpmyadmin:
+    image: phpmyadmin/phpmyadmin:latest
+    container_name: phpmyadmin
+    environment:
+      PMA_HOST: mysql
+      PMA_USER: root
+      PMA_PASSWORD: ${DB_ROOT_PASSWORD:-rootpassword}
+    ports:
+      - "8080:80"
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-net
+    restart: always
+
+  # ============================================================
+  # 3. UNG DUNG WEB (NODE.JS EXPRESS)
+  # ============================================================
+  web:
+    build:
+      context: ./app
+      dockerfile: Dockerfile
+    container_name: attendance_web
+    environment:
+      - DB_HOST=mysql
+      - DB_PORT=3306
+      - DB_USER=root
+      - DB_PASSWORD=${DB_ROOT_PASSWORD:-rootpassword}
+      - DB_NAME=${DB_NAME:-attendance_db}
+      - PORT=3000
+      - NODE_ENV=production
+      - SESSION_SECRET=${SESSION_SECRET:-attendance_dtc_super_secret_session_key_2026}
+    depends_on:
+      mysql:
+        condition: service_healthy
+    networks:
+      - app-net
+    restart: always
+
+  # ============================================================
+  # 4. NGINX REVERSE PROXY (CONG TRUY CAP CHINH WEBSITE)
+  # ============================================================
+  nginx:
+    image: nginx:alpine
+    container_name: nginx_proxy
+    ports:
+      - "80:80"
+    volumes:
+      - ./nginx/default.conf:/etc/nginx/conf.d/default.conf:ro
+    depends_on:
+      - web
+    networks:
+      - app-net
+    restart: always
