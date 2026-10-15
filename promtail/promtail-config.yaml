@@ -1,0 +1,36 @@
+server:
+  http_listen_port: 9080
+  grpc_listen_port: 0
+
+positions:
+  filename: /tmp/positions.yaml
+
+clients:
+  - url: http://loki:3100/loki/api/v1/push
+
+scrape_configs:
+  # 1. Thu thap log cua dich vu Web Node.js
+  - job_name: app-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: attendance_web
+          service: web
+          __path__: /var/log/app/*.log
+
+  # 2. Thu thap log cua Nginx Reverse Proxy
+  - job_name: nginx-logs
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: nginx_proxy
+          service: nginx
+          __path__: /var/log/nginx/*.log
+
+  # 3. Thu thap log container tong quat
+  - job_name: docker-containers
+    static_configs:
+      - targets: [localhost]
+        labels:
+          job: containerlogs
+          __path__: /var/lib/docker/containers/*/*.log
